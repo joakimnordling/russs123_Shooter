@@ -63,11 +63,11 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 
 # define font
-font = pygame.font.SysFont("Futura", 30)
+FONT_FUTURA = pygame.font.SysFont("Futura", 30)
 
 
-def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True, text_col)
+def draw_text(text, x, y, color=WHITE, font=FONT_FUTURA):
+    img = font.render(text, True, color)
     screen.blit(img, (x, y))
 
 
@@ -537,11 +537,11 @@ while run:
     # show player health
     health_bar.draw(player.health)
     # show ammo
-    draw_text("AMMO: ", font, WHITE, 10, 35)
+    draw_text("AMMO: ", 10, 35)
     for x in range(player.ammo):
         screen.blit(bullet_img, (90 + (x * 10), 40))
     # show grenades
-    draw_text("GRENADES: ", font, WHITE, 10, 60)
+    draw_text("GRENADES: ", 10, 60)
     for x in range(player.grenades):
         screen.blit(grenade_img, (135 + (x * 15), 60))
 
