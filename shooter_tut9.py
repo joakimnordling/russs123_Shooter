@@ -77,7 +77,7 @@ def draw_bg():
 
 
 class Soldier(pygame.sprite.Sprite):
-    def __init__(self, char_type, x, y, scale, speed, ammo, grenades):
+    def __init__(self, char_type, x, y, scale, speed, ammo, grenades=0):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         self.char_type = char_type
@@ -274,12 +274,23 @@ class World:
                         decoration_group.add(decoration)
                     elif tile == 15:  # create player
                         player = Soldier(
-                            "player", x * TILE_SIZE, y * TILE_SIZE, 1.65, 5, 20, 5
+                            "player",
+                            x=x * TILE_SIZE,
+                            y=y * TILE_SIZE,
+                            scale=1.65,
+                            speed=5,
+                            ammo=20,
+                            grenades=5,
                         )
                         health_bar = HealthBar(10, 10, player.health, player.health)
                     elif tile == 16:  # create enemies
                         enemy = Soldier(
-                            "enemy", x * TILE_SIZE, y * TILE_SIZE, 1.65, 2, 20, 0
+                            "enemy",
+                            x=x * TILE_SIZE,
+                            y=y * TILE_SIZE,
+                            scale=1.65,
+                            speed=2,
+                            ammo=20,
                         )
                         enemy_group.add(enemy)
                     elif tile == 17:  # create ammo box
