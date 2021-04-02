@@ -93,9 +93,9 @@ class Soldier(pygame.sprite.Sprite):
         self.jump = False
         self.in_air = True
         self.flip = False
-        self.animation_list = []
+        self.animations = {}
         self.frame_index = 0
-        self.action = 0
+        self.action = "Idle"
         self.update_time = pygame.time.get_ticks()
         # ai specific variables
         self.move_counter = 0
@@ -105,22 +105,22 @@ class Soldier(pygame.sprite.Sprite):
 
         # load all images for the players
         animation_types = ["Idle", "Run", "Jump", "Death"]
-        for animation in animation_types:
+        for animation_type in animation_types:
             # reset temporary list of images
             temp_list = []
             # count number of files in the folder
-            num_of_frames = len(os.listdir(f"img/{self.char_type}/{animation}"))
+            num_of_frames = len(os.listdir(f"img/{self.char_type}/{animation_type}"))
             for i in range(num_of_frames):
                 img = pygame.image.load(
-                    f"img/{self.char_type}/{animation}/{i}.png"
+                    f"img/{self.char_type}/{animation_type}/{i}.png"
                 ).convert_alpha()
                 img = pygame.transform.scale(
                     img, (int(img.get_width() * scale), int(img.get_height() * scale))
                 )
                 temp_list.append(img)
-            self.animation_list.append(temp_list)
+            self.animations[animation_type] = temp_list
 
-        self.image = self.animation_list[self.action][self.frame_index]
+        self.image = self.animations[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
@@ -179,13 +179,13 @@ class Soldier(pygame.sprite.Sprite):
     def ai(self):
         if self.alive and player.alive:
             if self.idling == False and random.randint(1, 200) == 1:
-                self.update_action(0)  # 0: idle
+                self.update_action("Idle")
                 self.idling = True
                 self.idling_counter = 50
             # check if the ai in near the player
             if self.vision.colliderect(player.rect):
                 # stop running and face the player
-                self.update_action(0)  # 0: idle
+                self.update_action("Idle")
                 # shoot
                 self.shoot()
             else:
@@ -196,7 +196,7 @@ class Soldier(pygame.sprite.Sprite):
                         ai_moving_right = False
                     ai_moving_left = not ai_moving_right
                     self.move(ai_moving_left, ai_moving_right)
-                    self.update_action(1)  # 1: run
+                    self.update_action("Run")
                     self.move_counter += 1
                     # update ai vision as the enemy moves
                     self.vision.center = (
@@ -216,15 +216,15 @@ class Soldier(pygame.sprite.Sprite):
         # update animation
         ANIMATION_COOLDOWN = 100
         # update image depending on current frame
-        self.image = self.animation_list[self.action][self.frame_index]
+        self.image = self.animations[self.action][self.frame_index]
         # check if enough time has passed since the last update
         if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
             self.update_time = pygame.time.get_ticks()
             self.frame_index += 1
         # if the animation has run out the reset back to the start
-        if self.frame_index >= len(self.animation_list[self.action]):
-            if self.action == 3:
-                self.frame_index = len(self.animation_list[self.action]) - 1
+        if self.frame_index >= len(self.animations[self.action]):
+            if self.action == "Death":
+                self.frame_index = len(self.animations[self.action]) - 1
             else:
                 self.frame_index = 0
 
@@ -241,7 +241,7 @@ class Soldier(pygame.sprite.Sprite):
             self.health = 0
             self.speed = 0
             self.alive = False
-            self.update_action(3)
+            self.update_action("Death")
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -569,20 +569,20 @@ while run:
         # throw grenades
         elif grenade and grenade_thrown == False and player.grenades > 0:
             grenade = Grenade(
-                player.rect.centerx + (0.5 * player.rect.size[0] * player.direction),
-                player.rect.top,
-                player.direction,
+                x=player.rect.centerx + (0.5 * player.rect.size[0] * player.direction),
+                y=player.rect.top,
+                direction=player.direction,
             )
             grenade_group.add(grenade)
             # reduce grenades
             player.grenades -= 1
             grenade_thrown = True
         if player.in_air:
-            player.update_action(2)  # 2: jump
+            player.update_action("Jump")
         elif moving_left or moving_right:
-            player.update_action(1)  # 1: run
+            player.update_action("Run")
         else:
-            player.update_action(0)  # 0: idle
+            player.update_action("Idle")
         player.move(moving_left, moving_right)
 
     for event in pygame.event.get():
