@@ -202,7 +202,7 @@ class Soldier(pygame.sprite.Sprite):
 
     def ai(self):
         if self.alive and player.alive:
-            if self.idling == False and random.randint(1, 200) == 1:
+            if not self.idling and random.randint(1, 200) == 1:
                 self.update_action("Idle")
                 self.idling = True
                 self.idling_counter = 50
@@ -213,7 +213,7 @@ class Soldier(pygame.sprite.Sprite):
                 # shoot
                 self.shoot()
             else:
-                if self.idling == False:
+                if not self.idling:
                     if self.direction == 1:
                         ai_moving_right = True
                     else:
@@ -285,12 +285,12 @@ class World:
                     img_rect.x = x * TILE_SIZE
                     img_rect.y = y * TILE_SIZE
                     tile_data = (img, img_rect)
-                    if tile >= 0 and tile <= 8:
+                    if 0 <= tile <= 8:
                         self.obstacle_list.append(tile_data)
-                    elif tile >= 9 and tile <= 10:
+                    elif 9 <= tile <= 10:
                         water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
                         water_group.add(water)
-                    elif tile >= 11 and tile <= 14:
+                    elif 11 <= tile <= 14:
                         decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
                         decoration_group.add(decoration)
                     elif tile == 15:  # create player
@@ -585,7 +585,7 @@ while run:
         if shoot:
             player.shoot()
         # throw grenades
-        elif grenade and grenade_thrown == False and player.grenades > 0:
+        elif grenade and not grenade_thrown and player.grenades > 0:
             grenade = Grenade(
                 x=player.rect.centerx + (0.5 * player.rect.size[0] * player.direction),
                 y=player.rect.top,
