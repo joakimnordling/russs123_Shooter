@@ -128,8 +128,7 @@ class Soldier(pygame.sprite.Sprite):
         self.update_animation()
         self.check_alive()
         # update cooldown
-        if self.shoot_cooldown > 0:
-            self.shoot_cooldown -= 1
+        self.shoot_cooldown = max(0, self.shoot_cooldown - 1)
 
     def move(self, moving_left, moving_right):
         # reset movement variables
@@ -153,9 +152,7 @@ class Soldier(pygame.sprite.Sprite):
             self.in_air = True
 
         # apply gravity
-        self.vel_y += GRAVITY
-        if self.vel_y > 10:
-            self.vel_y = 10
+        self.vel_y = min(10, self.vel_y + GRAVITY)
         dy += self.vel_y
 
         # check collision with floor
@@ -362,9 +359,7 @@ class ItemBox(pygame.sprite.Sprite):
         if pygame.sprite.collide_rect(self, player):
             # check what kind of box it was
             if self.item_type == "Health":
-                player.health += 25
-                if player.health > player.max_health:
-                    player.health = player.max_health
+                player.health = min(player.max_health, player.health + 25)
             elif self.item_type == "Ammo":
                 player.ammo += 15
             elif self.item_type == "Grenade":
