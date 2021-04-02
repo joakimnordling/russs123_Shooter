@@ -1,6 +1,6 @@
 import csv
-import os
 import random
+from pathlib import Path
 
 import pygame
 
@@ -33,21 +33,55 @@ grenade = False
 grenade_thrown = False
 
 
+# helpers for loading images
+def load_image(file_path, scale=None, width=None, height=None):
+    img = pygame.image.load(file_path).convert_alpha()
+
+    if width is None:
+        width = img.get_width()
+    if height is None:
+        height = img.get_height()
+
+    if scale is not None:
+        width = int(width * scale)
+        height = int(height * scale)
+
+    img = pygame.transform.scale(img, (width, height))
+
+    return img
+
+
+def load_images(glob, scale=None, width=None, height=None):
+    def convert_to_int(path):
+        # Extract any digits from the name and convert to an int
+        name = path.stem
+        digits = [d for d in name if d.isdigit()]
+        return int("".join(digits))
+
+    image_files = Path(".").glob(glob)
+    # Sort by name as integer
+    image_files = sorted(image_files, key=convert_to_int)
+
+    # Load and scale images
+    images = [
+        load_image(file_path, scale=scale, width=width, height=height)
+        for file_path in image_files
+    ]
+
+    return images
+
+
 # load images
 # store tiles in a list
-img_list = []
-for x in range(TILE_TYPES):
-    img = pygame.image.load(f"img/Tile/{x}.png")
-    img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
-    img_list.append(img)
+img_list = load_images("img/Tile/*.png", width=TILE_SIZE, height=TILE_SIZE)
 # bullet
-bullet_img = pygame.image.load("img/icons/bullet.png").convert_alpha()
+bullet_img = load_image("img/icons/bullet.png")
 # grenade
-grenade_img = pygame.image.load("img/icons/grenade.png").convert_alpha()
+grenade_img = load_image("img/icons/grenade.png")
 # pick up boxes
-health_box_img = pygame.image.load("img/icons/health_box.png").convert_alpha()
-ammo_box_img = pygame.image.load("img/icons/ammo_box.png").convert_alpha()
-grenade_box_img = pygame.image.load("img/icons/grenade_box.png").convert_alpha()
+health_box_img = load_image("img/icons/health_box.png")
+ammo_box_img = load_image("img/icons/ammo_box.png")
+grenade_box_img = load_image("img/icons/grenade_box.png")
 item_boxes = {
     "Health": health_box_img,
     "Ammo": ammo_box_img,
@@ -106,19 +140,9 @@ class Soldier(pygame.sprite.Sprite):
         # load all images for the players
         animation_types = ["Idle", "Run", "Jump", "Death"]
         for animation_type in animation_types:
-            # reset temporary list of images
-            temp_list = []
-            # count number of files in the folder
-            num_of_frames = len(os.listdir(f"img/{self.char_type}/{animation_type}"))
-            for i in range(num_of_frames):
-                img = pygame.image.load(
-                    f"img/{self.char_type}/{animation_type}/{i}.png"
-                ).convert_alpha()
-                img = pygame.transform.scale(
-                    img, (int(img.get_width() * scale), int(img.get_height() * scale))
-                )
-                temp_list.append(img)
-            self.animations[animation_type] = temp_list
+            self.animations[animation_type] = load_images(
+                f"img/{self.char_type}/{animation_type}/*.png", scale=scale
+            )
 
         self.image = self.animations[self.action][self.frame_index]
         self.rect = self.image.get_rect()
@@ -463,13 +487,7 @@ class Grenade(pygame.sprite.Sprite):
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, x, y, scale):
         pygame.sprite.Sprite.__init__(self)
-        self.images = []
-        for num in range(1, 6):
-            img = pygame.image.load(f"img/explosion/exp{num}.png").convert_alpha()
-            img = pygame.transform.scale(
-                img, (int(img.get_width() * scale), int(img.get_height() * scale))
-            )
-            self.images.append(img)
+        self.images = load_images(f"img/explosion/exp*.png", scale=scale)
         self.frame_index = 0
         self.image = self.images[self.frame_index]
         self.rect = self.image.get_rect()
