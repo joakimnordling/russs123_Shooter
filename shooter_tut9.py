@@ -155,7 +155,7 @@ class Soldier(pygame.sprite.Sprite):
         # apply gravity
         self.vel_y += GRAVITY
         if self.vel_y > 10:
-            self.vel_y
+            self.vel_y = 10
         dy += self.vel_y
 
         # check collision with floor
